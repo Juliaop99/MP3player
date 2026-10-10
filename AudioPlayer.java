@@ -25,7 +25,7 @@ import javafx.scene.media.MediaPlayer;
  * </p>
  * 
  * @author Julià O.
- * @version 2.0 
+ * @version 2.1
 */
 public class AudioPlayer extends Application {
     private class History {
@@ -59,8 +59,12 @@ public class AudioPlayer extends Application {
     private String path;
     private File mainPath = new File(System.getProperty("user.home"));
     private ListView<File> fileSystem;
+    private File [] allFiles;
+    private Label currentFolder = new Label();
+    private Button playButton;
     private int currentIndex = 0;
     private MediaPlayer mediaPlayer;
+    private boolean loop = false;
     private boolean playing = false;
     private boolean sequential = true;
 
@@ -69,39 +73,26 @@ public class AudioPlayer extends Application {
         BorderPane root = new BorderPane();
 
         //Control bar items
-        Button playButton = new Button("Play");
+        playButton = new Button("Play");
         playButton.setOnAction(e -> {playPause();});
         Button nextSongButton = new Button("Next");
         nextSongButton.setOnAction(e -> {next();});
         Button prevSongButton = new Button("Previous");
         prevSongButton.setOnAction(e -> {previous();});
+        Button shuffleButton = new Button("Sequential");
+        shuffleButton.setOnAction(e -> {shuffle(shuffleButton);});
+        Button loopButton = new Button("No loop");
+        loopButton.setOnAction(e -> {loop(loopButton);});
 
         HBox controlBar = new HBox(15);
         controlBar.setAlignment(Pos.CENTER);
         controlBar.setStyle("-fx-padding: 15px; -fx-background-color: #222222;");
-        controlBar.getChildren().addAll(prevSongButton,playButton,nextSongButton);
+        controlBar.getChildren().addAll(shuffleButton,prevSongButton,playButton,nextSongButton,loopButton);
 
         root.setBottom(controlBar);
 
         //File system
         fileSystem = new ListView<>();
-
-        // File [] allFiles = mainPath.listFiles(file -> {
-        //     if (file.isDirectory()) {
-        //         return true;
-        //     }
-        //     if (file.isFile()) {
-        //         String lowerCaseFile = file.getName().toLowerCase();
-        //         return (lowerCaseFile.endsWith(".mp3")); 
-        //     }
-        //     return false;
-        // });
-
-        // if (allFiles != null) {
-        //     fileSystem.getItems().clear();
-        //     fileSystem.getItems().addAll(allFiles);
-        // }
-
         fileSystem.setCellFactory(param -> new ListCell<File>() {
             @Override 
             protected void updateItem(File item, boolean empty) {
@@ -113,15 +104,10 @@ public class AudioPlayer extends Application {
                 }
             }
         });
-
         loadDirectory();
 
-
         Button goBackButton = new Button("<-");
-        //goBackButton.setOnAction(e -> {goBack();});
-
-        Label currentFolder = new Label();
-        currentFolder.setText("Path: " + mainPath);
+        goBackButton.setOnAction(e -> {goBack();});
 
         fileSystem.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
@@ -129,15 +115,15 @@ public class AudioPlayer extends Application {
 
                 if (newValue != null) {
                     int index = fileSystem.getSelectionModel().getSelectedIndex();
-                
+                    
                     if (!newValue.isDirectory()) {
                         currentIndex = index;
                         path = newValue.getAbsolutePath();
                         initMediaPlayer();
+                        playPause();
                     } else {
                         mainPath = newValue;
                         loadDirectory();
-                        currentFolder.setText(mainPath.getAbsolutePath());
                     }
                 }
             }
@@ -149,10 +135,10 @@ public class AudioPlayer extends Application {
         pathBar.getChildren().addAll(goBackButton, currentFolder);
 
         VBox fileBox = new VBox();
-        fileBox.setAlignment(Pos.CENTER_LEFT);
+        fileBox.setAlignment(Pos.TOP_LEFT);
         //fileBox.setStyle
         fileBox.getChildren().addAll(pathBar, fileSystem);
-        VBox.setVgrow(fileSystem, Priority.ALWAYS);
+        //VBox.setVgrow(fileSystem, Priority.ALWAYS);
         
         root.setLeft(fileBox);
 
@@ -172,9 +158,11 @@ public class AudioPlayer extends Application {
         if (playing) {
             mediaPlayer.pause();
             playing = false;
+            playButton.setText("Play");
         } else {
             mediaPlayer.play();
             playing = true;
+            playButton.setText("Pause");
         }
     }
 
@@ -182,21 +170,15 @@ public class AudioPlayer extends Application {
         history.add(path);
 
         if (sequential) {
-            nextSequential();
+            currentIndex = (currentIndex + 1) % allFiles.length;
         } else {
-            nextRandom();
+            Random r = new Random();
+            currentIndex = (r.nextInt(allFiles.length - 1));
         }
 
+        path = allFiles[currentIndex].getAbsolutePath();
         initMediaPlayer();
         playPause();
-    }
-
-    private void nextRandom() {
-
-    }
-
-    private void nextSequential() {
-
     }
 
     private void previous() {
@@ -206,8 +188,10 @@ public class AudioPlayer extends Application {
             mediaPlayer.stop();
             mediaPlayer.play();
         } else {
+            currentIndex -= 1;
             path = previousSong;
             initMediaPlayer();
+            playPause();
         }
     }
 
@@ -218,6 +202,7 @@ public class AudioPlayer extends Application {
 
         Media media = new Media(new File(path).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
+        playing = false;
 
         mediaPlayer.setOnEndOfMedia(() -> {
            playing = false; 
@@ -226,7 +211,7 @@ public class AudioPlayer extends Application {
     }
 
     private void loadDirectory() {
-        File [] allFiles = mainPath.listFiles(file -> {
+        allFiles = mainPath.listFiles(file -> {
             if (file.isDirectory()) {
                 return true;
             }
@@ -240,6 +225,39 @@ public class AudioPlayer extends Application {
         if (allFiles != null) {
             fileSystem.getItems().clear();
             fileSystem.getItems().addAll(allFiles);
+            currentFolder.setText(mainPath.getAbsolutePath());
+        }
+    }
+
+    private void goBack() {
+        String superDirectory = mainPath.getParent();
+
+        if (superDirectory != null) {
+            File superFileDirectory = new File(superDirectory);
+            mainPath = superFileDirectory;
+            loadDirectory();
+        } else {
+            //Block the button if it has no parent (not necessary)
+        }
+    }
+
+    private void shuffle(Button button) {
+        if (sequential) {
+            sequential = false;
+            button.setText("Random");
+        } else {
+            sequential = true;
+            button.setText("Sequential");
+        }
+    }
+
+    private void loop(Button button) {
+        if (loop) {
+            loop = false;
+            button.setText("No loop");
+        } else {
+            loop = true;
+            button.setText("Looping");
         }
     }
 }
