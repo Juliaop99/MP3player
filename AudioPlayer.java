@@ -1,6 +1,7 @@
 package Reproductor;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Random;
 
 import javafx.application.Application;
@@ -8,12 +9,13 @@ import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
+import javafx.util.Duration;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -62,6 +64,8 @@ public class AudioPlayer extends Application {
     private File [] allFiles;
     private Label currentFolder = new Label();
     private Button playButton;
+    private Slider progressBar;
+    private double volume;
     private int currentIndex = 0;
     private MediaPlayer mediaPlayer;
     private boolean loop = false;
@@ -75,6 +79,23 @@ public class AudioPlayer extends Application {
         //Control bar items
         playButton = new Button("Play");
         playButton.setOnAction(e -> {playPause();});
+        progressBar = new Slider();
+        progressBar.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (progressBar.isValueChanging()) {
+                mediaPlayer.seek(Duration.seconds(newValue.doubleValue()));
+            }                
+        });
+        Slider volumeSlider = new Slider();
+        volumeSlider.setMin(0);
+        volumeSlider.setMax(100);
+        volumeSlider.setValue(50);
+        volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            volume = newValue.doubleValue() / 100.0;
+    
+            if (mediaPlayer != null) {
+                mediaPlayer.setVolume(volume);
+            }
+        });
         Button nextSongButton = new Button("Next");
         nextSongButton.setOnAction(e -> {next();});
         Button prevSongButton = new Button("Previous");
@@ -87,7 +108,7 @@ public class AudioPlayer extends Application {
         HBox controlBar = new HBox(15);
         controlBar.setAlignment(Pos.CENTER);
         controlBar.setStyle("-fx-padding: 15px; -fx-background-color: #222222;");
-        controlBar.getChildren().addAll(shuffleButton,prevSongButton,playButton,nextSongButton,loopButton);
+        controlBar.getChildren().addAll(shuffleButton,prevSongButton,playButton,nextSongButton,loopButton,progressBar);
 
         root.setBottom(controlBar);
 
@@ -167,13 +188,15 @@ public class AudioPlayer extends Application {
     }
 
     private void next() {
-        history.add(path);
+        if (!loop) {
+            history.add(path);
 
-        if (sequential) {
-            currentIndex = (currentIndex + 1) % allFiles.length;
-        } else {
-            Random r = new Random();
-            currentIndex = (r.nextInt(allFiles.length - 1));
+            if (sequential) {
+                currentIndex = (currentIndex + 1) % allFiles.length;
+            } else {
+                Random r = new Random();
+                currentIndex = (r.nextInt(allFiles.length - 1));
+            }
         }
 
         path = allFiles[currentIndex].getAbsolutePath();
@@ -204,6 +227,15 @@ public class AudioPlayer extends Application {
         mediaPlayer = new MediaPlayer(media);
         playing = false;
 
+        mediaPlayer.setOnReady(() -> {
+            progressBar.setMax(mediaPlayer.getTotalDuration().toSeconds());
+            mediaPlayer.setVolume(volume);
+        });
+
+        mediaPlayer.currentTimeProperty().addListener((observable, oldTime, newTime) -> {
+            progressBar.setValue(newTime.toSeconds());
+        });
+
         mediaPlayer.setOnEndOfMedia(() -> {
            playing = false; 
            next(); 
@@ -223,10 +255,23 @@ public class AudioPlayer extends Application {
         });
 
         if (allFiles != null) {
+            sortListView();
             fileSystem.getItems().clear();
             fileSystem.getItems().addAll(allFiles);
             currentFolder.setText(mainPath.getAbsolutePath());
         }
+    }
+
+    private void sortListView() {
+        Arrays.sort(allFiles, (file1,file2) -> {
+            if (file1.isDirectory() && !file2.isDirectory()) {
+                return -1;
+            } else if (file2.isDirectory() && !file1.isDirectory()) {
+                return 1;
+            }
+
+            return file1.getName().compareTo(file2.getName());
+        });
     }
 
     private void goBack() {
