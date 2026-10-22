@@ -3,22 +3,38 @@ package Reproductor;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.prefs.*;
 
 import javafx.application.Application;
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.Group;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.layout.Pane;
 
 /**
  * MP3 Offline Music Player with JavaFX
@@ -27,9 +43,16 @@ import javafx.scene.media.MediaPlayer;
  * </p>
  * 
  * @author Julià O.
- * @version 2.1
+ * @version 2.3
 */
 public class AudioPlayer extends Application {
+    //private static final Preferences prefs = Preferences.userRoot().node("MP3Player");
+    private RotateTransition rotation;
+    private static final double width = 1672; 
+    private static final double height = 941;  
+    /**
+     * 
+     */
     private class History {
         private String [] array;
         private int top;
@@ -65,52 +88,93 @@ public class AudioPlayer extends Application {
     private Label currentFolder = new Label();
     private Button playButton;
     private Slider progressBar;
-    private double volume;
+    private double volume = 0.5;
     private int currentIndex = 0;
     private MediaPlayer mediaPlayer;
     private boolean loop = false;
     private boolean playing = false;
     private boolean sequential = true;
+    private Scene scene;
 
+
+    /**    
+     * 
+     * @see javafx.application.Application#start(javafx.stage.Stage)
+     */
     @Override
     public void start(Stage primaryStage) {
-        BorderPane root = new BorderPane();
+        Pane mainPane = new Pane();
+        Pane configPane = new Pane();
 
-        //Control bar items
+        // Main pane
+        mainPane.setPrefSize(width, height);
+        mainPane.setMinSize(width, height);
+        mainPane.setMaxSize(width, height);
+        mainPane.setClip(new Rectangle(width, height));
+
+        ImageView cover = new ImageView("file:/home/julia/Documents/VSC/Reproductor/COVER.png");
+        
+        ImageView vinyl = new ImageView("file:/home/julia/Documents/VSC/Reproductor/VINYL.png");
+        vinyl.setFitWidth(width);   
+        vinyl.setFitHeight(height); 
+        vinyl.setLayoutX(0);
+        vinyl.setLayoutY(0);
+
+        mainPane.getChildren().addAll(cover, vinyl);
+
+        //Control items
         playButton = new Button("Play");
+        playButton.setFocusTraversable(false);
         playButton.setOnAction(e -> {playPause();});
+        
         progressBar = new Slider();
+        progressBar.setPrefWidth(300); 
         progressBar.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (progressBar.isValueChanging()) {
+            if (progressBar.isValueChanging() && mediaPlayer != null) {
                 mediaPlayer.seek(Duration.seconds(newValue.doubleValue()));
             }                
         });
-        Slider volumeSlider = new Slider();
-        volumeSlider.setMin(0);
-        volumeSlider.setMax(100);
-        volumeSlider.setValue(50);
+        
+        Slider volumeSlider = new Slider(0, 100, volume * 100);
+        volumeSlider.setPrefWidth(150);
         volumeSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
             volume = newValue.doubleValue() / 100.0;
-    
             if (mediaPlayer != null) {
                 mediaPlayer.setVolume(volume);
             }
         });
+        
         Button nextSongButton = new Button("Next");
+        nextSongButton.setFocusTraversable(false);
         nextSongButton.setOnAction(e -> {next();});
         Button prevSongButton = new Button("Previous");
+        prevSongButton.setFocusTraversable(false);
         prevSongButton.setOnAction(e -> {previous();});
         Button shuffleButton = new Button("Sequential");
+        shuffleButton.setFocusTraversable(false);
         shuffleButton.setOnAction(e -> {shuffle(shuffleButton);});
         Button loopButton = new Button("No loop");
+        loopButton.setFocusTraversable(false);
         loopButton.setOnAction(e -> {loop(loopButton);});
+        Button configButton = new Button("Config");
+        configButton.setFocusTraversable(false);
+        configButton.setOnAction(e -> {
+            mainPane.setVisible(false); 
+            configPane.setVisible(true); 
+        });
 
-        HBox controlBar = new HBox(15);
-        controlBar.setAlignment(Pos.CENTER);
-        controlBar.setStyle("-fx-padding: 15px; -fx-background-color: #222222;");
-        controlBar.getChildren().addAll(shuffleButton,prevSongButton,playButton,nextSongButton,loopButton,progressBar);
-
-        root.setBottom(controlBar);
+        HBox controlHBox = new HBox(15); 
+        controlHBox.setAlignment(Pos.CENTER); 
+        controlHBox.setLayoutX(950); 
+        controlHBox.setLayoutY(550); 
+        controlHBox.setPrefWidth(540);
+        controlHBox.setPrefHeight(260);
+        controlHBox.setMinSize(540, 260); 
+        controlHBox.setMaxSize(540, 260);
+        controlHBox.setStyle("-fx-background-color: rgba(20,20,20,0.7); -fx-padding: 15px; -fx-background-radius: 10px;");
+        
+        controlHBox.getChildren().addAll(volumeSlider, shuffleButton, prevSongButton, playButton, nextSongButton, loopButton, progressBar, configButton);
+        mainPane.getChildren().add(controlHBox);
 
         //File system
         fileSystem = new ListView<>();
@@ -133,10 +197,8 @@ public class AudioPlayer extends Application {
         fileSystem.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 File newValue = fileSystem.getSelectionModel().getSelectedItem();
-
                 if (newValue != null) {
                     int index = fileSystem.getSelectionModel().getSelectedIndex();
-                    
                     if (!newValue.isDirectory()) {
                         currentIndex = index;
                         path = newValue.getAbsolutePath();
@@ -152,41 +214,126 @@ public class AudioPlayer extends Application {
 
         HBox pathBar = new HBox(5);
         pathBar.setAlignment(Pos.CENTER_LEFT);
-        //pathBar.setStyle("");
         pathBar.getChildren().addAll(goBackButton, currentFolder);
 
-        VBox fileBox = new VBox();
-        fileBox.setAlignment(Pos.TOP_LEFT);
-        //fileBox.setStyle
+        VBox fileBox = new VBox(10);
         fileBox.getChildren().addAll(pathBar, fileSystem);
-        //VBox.setVgrow(fileSystem, Priority.ALWAYS);
+        fileBox.setLayoutX(570);
+        fileBox.setLayoutY(170); 
+        fileBox.setPrefWidth(210); 
+        fileBox.setPrefHeight(560);
+        fileBox.setMinSize(210, 560); 
+        fileBox.setMaxSize(210, 560); 
+        fileBox.setStyle("-fx-background-color: rgba(20,20,20,0.7); -fx-padding: 15px; -fx-background-radius: 10px;");
         
-        root.setLeft(fileBox);
+        VBox.setVgrow(fileSystem, javafx.scene.layout.Priority.ALWAYS); 
+        
+        mainPane.getChildren().add(fileBox);
 
+        // Configuration Pane
+        configPane.setPrefSize(width, height);
+        configPane.setMinSize(width, height);
+        configPane.setMaxSize(width, height);
+        configPane.setClip(new Rectangle(width, height));
+        configPane.setVisible(false);
+        configPane.setStyle("-fx-background-color: #222;");
+        
+        TextField hola = new TextField("Hola");
+        hola.setLayoutX(600);
+        hola.setLayoutY(400);
+        hola.setPrefWidth(400);
+        
+        Button mainPageButton = new Button("MainPage");
+        mainPageButton.setLayoutX(600);
+        mainPageButton.setLayoutY(460);
+        mainPageButton.setOnAction(e -> {
+            configPane.setVisible(false); 
+            mainPane.setVisible(true); 
+        });
+        
+        configPane.getChildren().addAll(hola, mainPageButton);
 
-        //Final scene config
-        Scene scene = new Scene(root,500,300);
+        // Group + Scale + Translate
+        Group grupo = new Group(mainPane, configPane);
+
+        grupo.setManaged(false); 
+
+        Scale scale = new Scale(1, 1, 0, 0);
+        Translate translate = new Translate(0, 0);
+        grupo.getTransforms().addAll(translate, scale);
+
+        Pane root = new Pane();
+        root.setStyle("-fx-background-color: #111111;"); 
+        root.getChildren().add(grupo);
+
+        // Final scene config
+        scene = new Scene(root, 1000, 562); 
+
+        // Scaling
+        Runnable actualizarEscala = () -> {
+            double w = scene.getWidth();
+            double h = scene.getHeight();
+            
+            if (w > 0 && h > 0) {
+                double factor = Math.max(w / width, h / height);
+                
+                scale.setX(factor);
+                scale.setY(factor);
+                
+                translate.setX((w - (width * factor)) / 2.0);
+                translate.setY((h - (height * factor)) / 2.0);
+            }
+        };
+
+        primaryStage.setOnShown(e -> actualizarEscala.run());
+        scene.widthProperty().addListener((o, a, n) -> actualizarEscala.run());
+        scene.heightProperty().addListener((o, a, n) -> actualizarEscala.run());
+
+        // Keyboard shortcuts
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.SPACE) playPause();
+            else if (e.getCode() == KeyCode.N) next();
+            else if (e.getCode() == KeyCode.P) previous();
+            e.consume();
+        });
+
         primaryStage.setTitle("Mp3 player");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
+    /**
+     * 
+     * 
+     * @param args
+     */
     public static void main (String [] args) {
         launch(args);
     }
     
+    /**
+     * 
+     * 
+     */
     private void playPause() {
         if (playing) {
             mediaPlayer.pause();
             playing = false;
             playButton.setText("Play");
+
+            rotation.pause();
         } else {
             mediaPlayer.play();
             playing = true;
             playButton.setText("Pause");
+            
+            rotation.play();
         }
     }
 
+    /**
+     * 
+     */
     private void next() {
         if (!loop) {
             history.add(path);
@@ -204,6 +351,9 @@ public class AudioPlayer extends Application {
         playPause();
     }
 
+    /**
+     * 
+     */
     private void previous() {
         String previousSong = history.pop();
 
@@ -218,6 +368,9 @@ public class AudioPlayer extends Application {
         }
     }
 
+    /**
+     * 
+     */
     private void initMediaPlayer() {
         if (mediaPlayer != null) {
            mediaPlayer.dispose(); 
@@ -242,6 +395,9 @@ public class AudioPlayer extends Application {
         });
     }
 
+    /**
+     * 
+     */
     private void loadDirectory() {
         allFiles = mainPath.listFiles(file -> {
             if (file.isDirectory()) {
@@ -262,6 +418,9 @@ public class AudioPlayer extends Application {
         }
     }
 
+    /**
+     * 
+     */
     private void sortListView() {
         Arrays.sort(allFiles, (file1,file2) -> {
             if (file1.isDirectory() && !file2.isDirectory()) {
@@ -274,6 +433,9 @@ public class AudioPlayer extends Application {
         });
     }
 
+    /**
+     * 
+     */
     private void goBack() {
         String superDirectory = mainPath.getParent();
 
@@ -281,11 +443,13 @@ public class AudioPlayer extends Application {
             File superFileDirectory = new File(superDirectory);
             mainPath = superFileDirectory;
             loadDirectory();
-        } else {
-            //Block the button if it has no parent (not necessary)
         }
     }
 
+    /**
+     * 
+     * @param button
+     */
     private void shuffle(Button button) {
         if (sequential) {
             sequential = false;
@@ -296,6 +460,10 @@ public class AudioPlayer extends Application {
         }
     }
 
+    /**
+     * 
+     * @param button
+     */
     private void loop(Button button) {
         if (loop) {
             loop = false;
