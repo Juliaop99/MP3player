@@ -3,19 +3,16 @@ package Reproductor;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.prefs.*;
+//import java.util.prefs.*;
 
 import javafx.application.Application;
-import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
-import javafx.animation.AnimationTimer;
 import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -23,10 +20,7 @@ import javafx.util.Duration;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -43,7 +37,7 @@ import javafx.scene.layout.Pane;
  * </p>
  * 
  * @author Julià O.
- * @version 2.3
+ * @version 2.4
 */
 public class AudioPlayer extends Application {
     //private static final Preferences prefs = Preferences.userRoot().node("MP3Player");
@@ -163,18 +157,30 @@ public class AudioPlayer extends Application {
             configPane.setVisible(true); 
         });
 
-        HBox controlHBox = new HBox(15); 
-        controlHBox.setAlignment(Pos.CENTER); 
-        controlHBox.setLayoutX(950); 
-        controlHBox.setLayoutY(550); 
-        controlHBox.setPrefWidth(540);
-        controlHBox.setPrefHeight(260);
-        controlHBox.setMinSize(540, 260); 
-        controlHBox.setMaxSize(540, 260);
-        controlHBox.setStyle("-fx-background-color: rgba(20,20,20,0.7); -fx-padding: 15px; -fx-background-radius: 10px;");
+        HBox controlButtons = new HBox(15);
+        controlButtons.setAlignment(Pos.CENTER);
+        controlButtons.getChildren().addAll(shuffleButton,prevSongButton,playButton,nextSongButton,loopButton);
+
+        VBox controlAndProgress = new VBox(15);
+        controlAndProgress.setAlignment(Pos.CENTER);
+        controlAndProgress.getChildren().addAll(controlButtons, progressBar);
+
+        HBox songAndVolume = new HBox(100);
+        songAndVolume.setAlignment(Pos.CENTER);
+        songAndVolume.getChildren().addAll(volumeSlider);
+
+        VBox controlVBox = new VBox(100); 
+        controlVBox.setAlignment(Pos.CENTER); 
+        controlVBox.setLayoutX(950); 
+        controlVBox.setLayoutY(550); 
+        controlVBox.setPrefWidth(540);
+        controlVBox.setPrefHeight(260);
+        controlVBox.setMinSize(540, 260); 
+        controlVBox.setMaxSize(540, 260);
+        controlVBox.setStyle("-fx-padding: 15px;");
         
-        controlHBox.getChildren().addAll(volumeSlider, shuffleButton, prevSongButton, playButton, nextSongButton, loopButton, progressBar, configButton);
-        mainPane.getChildren().add(controlHBox);
+        controlVBox.getChildren().addAll(controlAndProgress,songAndVolume);
+        mainPane.getChildren().add(controlVBox);
 
         //File system
         fileSystem = new ListView<>();
@@ -224,7 +230,7 @@ public class AudioPlayer extends Application {
         fileBox.setPrefHeight(560);
         fileBox.setMinSize(210, 560); 
         fileBox.setMaxSize(210, 560); 
-        fileBox.setStyle("-fx-background-color: rgba(20,20,20,0.7); -fx-padding: 15px; -fx-background-radius: 10px;");
+        fileBox.setStyle("-fx-padding: 15px;");
         
         VBox.setVgrow(fileSystem, javafx.scene.layout.Priority.ALWAYS); 
         
