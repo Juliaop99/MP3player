@@ -1,0 +1,121 @@
+/* ==========================================
+   1. THE ATREZZO
+   ========================================== */
+.progress-atrezzo {
+    -fx-pref-height: 4px;
+}
+
+.progress-atrezzo .track {
+    -fx-background-color: #E0E0E0;
+    -fx-background-radius: 2px;
+    -fx-background-insets: 0;
+}
+
+.progress-atrezzo .bar {
+    -fx-background-color: #111111;
+    -fx-background-radius: 2px;
+    -fx-background-insets: 0;
+    -fx-padding: 2px;
+}
+
+
+/* ==========================================
+   2. THE SLIDER
+   ========================================== */
+.main-slider {
+    -fx-pref-height: 20px;
+    -fx-padding: 0; 
+}
+
+.main-slider .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.main-slider .thumb {
+    -fx-background-color: #111111;
+    -fx-pref-width: 14px;
+    -fx-pref-height: 14px;
+    -fx-background-radius: 50%;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.main-slider .thumb:hover {
+    -fx-background-color: #333333;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+.main-slider:focused .thumb {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* ==========================================
+   4. LISTVIEW ESTÉTICO Y SCROLLBAR
+   ========================================== */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: white; /* Letras blancas */
+    -fx-font-size: 18px;  /* Texto más grande */
+    -fx-font-family: "FontAwesomeSolid"; /* O la fuente que uses */
+    -fx-padding: 10px 5px;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: rgba(255, 255, 255, 0.05); 
+}
+
+.list-view .list-cell:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-cursor: hand;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: white;
+}
+
+/* White vertical scrollbar */
+.list-view .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8px;
+}
+
+.list-view .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.4);
+    -fx-background-radius: 4px;
+}
+
+.list-view .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.8);
+}
+
+.list-view .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+/* Hide arrows of scroll */
+.list-view .scroll-bar:vertical .increment-button,
+.list-view .scroll-bar:vertical .decrement-button,
+.list-view .scroll-bar:vertical .increment-arrow,
+.list-view .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-shape: " ";
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+}
+
+/* Hide lateral scroll */
+.list-view .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-max-height: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+}
