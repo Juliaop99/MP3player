@@ -6,10 +6,10 @@
 
 A sleek, offline desktop music player built with JavaFX. It features a custom, visually appealing vinyl-inspired UI, local file system browsing, album art extraction, and smooth animations.
 
-> **Note:** *Add your screenshot here!* (Drag and drop the image into GitHub's editor, and it will generate a link for you).
-> `![Player UI](link_to_your_screenshot.png)`
+<img width="1366" height="768" alt="screenshot_2026-11-10-214922" src="https://github.com/user-attachments/assets/5521e9ea-bd31-4200-8cea-7ca11435538d" />
 
-## ✨ Features
+
+## Features
 
 - **Offline Playback:** Play local `.mp3` files without an internet connection.
 - **File System Browser:** Navigate through your folders directly from the app. The list automatically sorts directories and tracks alphabetically.
@@ -19,7 +19,7 @@ A sleek, offline desktop music player built with JavaFX. It features a custom, v
 - **Keyboard Shortcuts:** Control playback without touching the mouse.
 - **Playback Modes:** Supports sequential playback, shuffle, and loop.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Language:** Java 17
 - **GUI Framework:** JavaFX
@@ -27,7 +27,11 @@ A sleek, offline desktop music player built with JavaFX. It features a custom, v
 - **Metadata:** JAudioTagger
 - **Icons:** Ikonli (FontAwesome 5 pack)
 
-## 🚀 How to Run
+## License
+
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See the [LICENSE](LICENSE) file for the full text.
+
+## How to Run
 
 ### Option 1: Download the Installer (Recommended for users)
 Go to the **[Releases](../../releases)** tab and download the latest `.deb` package (for Debian/Ubuntu-based Linux).
