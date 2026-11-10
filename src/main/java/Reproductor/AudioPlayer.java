@@ -504,7 +504,7 @@ public class AudioPlayer extends Application {
             e.consume();
         });
 
-        primaryStage.setTitle("Mp3 player");
+        primaryStage.setTitle("Radiant Mp3");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
