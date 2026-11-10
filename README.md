@@ -1,4 +1,4 @@
-# 🎵 MP3 Offline Music Player (JavaFX)
+# MP3 Offline Music Player (JavaFX)
 
 ![Java](https://img.shields.io/badge/Java-17%2B-orange?style=for-the-badge&logo=openjdk)
 ![JavaFX](https://img.shields.io/badge/JavaFX-UI-blue?style=for-the-badge&logo=java)
