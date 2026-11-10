@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.tunombre</groupId>
-    <artifactId>reproductor-mp3</artifactId>
+    <artifactId>radiant</artifactId>
     <version>1.0.0</version>
 
     <properties>
