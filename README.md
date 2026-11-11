@@ -40,7 +40,7 @@ Go to the **[Releases](../../releases)** tab and download the latest `.deb` pack
 3. Search for "MP3Player" in your applications menu and enjoy!
 
 *For other operating systems, download the `.jar` file from the Releases and run it via terminal:*
-`java -jar reproductor-mp3-1.0.0.jar`
+`java -jar radiant-1.0.0.jar`
 
 ### Option 2: Build from Source (For developers)
 If you want to compile the project yourself, you will need **Java 17+** and **Maven** installed.
