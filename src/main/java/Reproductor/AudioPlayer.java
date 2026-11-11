@@ -1,5 +1,5 @@
 /*
- * MP3 Offline Music Player
+ * Radiant - MP3 Offline Music Player
  * Copyright (C) 2026 Julià O.
  *
  * This program is free software: you can redistribute it and/or modify
